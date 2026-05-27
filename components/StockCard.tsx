@@ -34,7 +34,7 @@ export default function StockCard({ company, quote, loading }: StockCardProps) {
           <div>
             <div className="flex items-center gap-3 mb-0.5">
               <a
-                href={`https://finance.yahoo.com/quote/${company.ticker}`}
+                href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mono font-bold text-2xl tracking-tight transition-colors hover:text-[var(--accent)]"

@@ -24,7 +24,7 @@ export default function GrowthCard({ company, quote }: { company: Company; quote
         <div className="flex items-start justify-between mb-4">
           <div>
             <a
-              href={`https://finance.yahoo.com/quote/${company.ticker}`}
+              href={company.website}
               target="_blank"
               rel="noopener noreferrer"
               className="mono font-bold text-3xl tracking-tight transition-colors hover:text-[var(--accent)]"

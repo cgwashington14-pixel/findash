@@ -141,7 +141,7 @@ export default function RecapPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-baseline gap-4">
                     <a
-                      href={`https://finance.yahoo.com/quote/${company.ticker}`}
+                      href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mono font-bold transition-colors hover:text-[var(--accent)]"

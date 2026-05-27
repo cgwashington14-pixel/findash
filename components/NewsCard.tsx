@@ -2,12 +2,17 @@
 
 import type { NewsItem } from '@/lib/types';
 import { formatTimeAgo } from '@/lib/format';
+import { COMPANIES } from '@/lib/constants';
 import { ArrowUpRight } from 'lucide-react';
 
 const TICKER_ACCENTS: Record<string, string> = {
   AMD: '#10b981', MU: '#3b82f6', ELF: '#ec4899', NOW: '#a855f7',
   CRM: '#06b6d4', DOCU: '#eab308', CVX: '#f97316', COST: '#ef4444', CAKE: '#f59e0b',
 };
+
+const COMPANY_SITES: Record<string, string> = Object.fromEntries(
+  COMPANIES.map(c => [c.ticker, c.website])
+);
 
 export default function NewsCard({ item }: { item: NewsItem }) {
   const accent = TICKER_ACCENTS[item.ticker] ?? 'var(--text-2)';
@@ -20,7 +25,7 @@ export default function NewsCard({ item }: { item: NewsItem }) {
       {/* Left: ticker pill */}
       <div className="shrink-0 pt-0.5">
         <a
-          href={`https://finance.yahoo.com/quote/${item.ticker}`}
+          href={COMPANY_SITES[item.ticker] ?? '#'}
           target="_blank"
           rel="noopener noreferrer"
           className="mono font-bold text-xs tracking-wider transition-opacity hover:opacity-70"
