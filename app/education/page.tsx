@@ -1,7 +1,90 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { formatMarketCap } from '@/lib/format';
+import type { StockQuote } from '@/lib/types';
 
+/* ── Portfolio Pulse widget ──────────────────────────────── */
+function PortfolioPulse() {
+  const [quotes, setQuotes] = useState<StockQuote[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await (await fetch('/api/stocks')).json();
+        setQuotes((data ?? []).filter(Boolean));
+      } catch {}
+      finally { setLoading(false); }
+    };
+    load();
+    const id = setInterval(load, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-4 gap-px mb-10" style={{ background: 'var(--border)' }}>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="px-4 py-3" style={{ background: 'var(--bg-card)' }}>
+            <span className="label block mb-1.5">—</span>
+            <div className="h-4 w-16 animate-pulse" style={{ background: 'var(--bg-subtle)' }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const gainers   = quotes.filter(q => q.changePercent > 0).length;
+  const losers    = quotes.filter(q => q.changePercent < 0).length;
+  const totalCap  = quotes.reduce((s, q) => s + (q.marketCap ?? 0), 0);
+  const avgChg    = quotes.length
+    ? quotes.reduce((s, q) => s + q.changePercent, 0) / quotes.length : 0;
+  const topMover  = quotes.length
+    ? quotes.reduce((a, b) => Math.abs(b.changePercent) > Math.abs(a.changePercent) ? b : a)
+    : null;
+
+  return (
+    <div className="mb-10">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="label">Today&apos;s Portfolio Pulse</span>
+        <span className="live-dot" style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--pos)', display: 'inline-block' }} />
+        <span className="label" style={{ color: 'var(--pos)' }}>LIVE</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ background: 'var(--border)' }}>
+        {[
+          {
+            label: 'Total Cap',
+            value: formatMarketCap(totalCap),
+            color: 'var(--text-1)',
+          },
+          {
+            label: 'Avg Move',
+            value: `${avgChg >= 0 ? '+' : ''}${avgChg.toFixed(2)}%`,
+            color: avgChg > 0 ? 'var(--pos)' : avgChg < 0 ? 'var(--neg)' : 'var(--text-1)',
+          },
+          {
+            label: `Gainers / Losers`,
+            value: `${gainers} · ${losers}`,
+            color: gainers > losers ? 'var(--pos)' : losers > gainers ? 'var(--neg)' : 'var(--text-1)',
+          },
+          {
+            label: 'Biggest Mover',
+            value: topMover ? `${topMover.ticker} ${topMover.changePercent >= 0 ? '+' : ''}${topMover.changePercent.toFixed(2)}%` : '—',
+            color: topMover && topMover.changePercent >= 0 ? 'var(--pos)' : 'var(--neg)',
+          },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="px-4 py-3" style={{ background: 'var(--bg-card)' }}>
+            <span className="label block mb-1.5">{label}</span>
+            <span className="mono font-semibold text-sm" style={{ color }}>{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Lesson accordion ─────────────────────────────────────── */
 interface Lesson { id: string; title: string; tag: string; body: React.ReactNode; }
 
 function Row({ lesson }: { lesson: Lesson }) {
@@ -35,7 +118,7 @@ function Accent({ children }: { children: React.ReactNode }) {
 }
 function Block({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-3 p-3 text-xs" style={{ background: 'var(--bg-subtle)', borderLeft: '2px solid var(--accent)', fontFamily: 'monospace', color: 'var(--text-2)' }}>
+    <div className="my-3 p-3 text-xs" style={{ background: 'var(--bg-subtle)', borderLeft: '2px solid var(--accent)', fontFamily: 'monospace', color: 'var(--text-2)', whiteSpace: 'pre-line' }}>
       {children}
     </div>
   );
@@ -45,14 +128,14 @@ const LESSONS: Lesson[] = [
   {
     id: 'pe', tag: 'VALUATION', title: "P/E Ratio — What You're Paying per Dollar of Profit",
     body: (<>
-      <p className="mb-3">Divide the stock price by earnings per share. A P/E of 25 means investors pay <Accent>$25</Accent> for every <Accent>$1</Accent> of profit. It's the market's price tag for future expectations.</p>
+      <p className="mb-3">Divide the stock price by earnings per share. A P/E of 25 means investors pay <Accent>$25</Accent> for every <Accent>$1</Accent> of profit. It&apos;s the market&apos;s price tag for future expectations.</p>
       <Block>P/E = Share Price ÷ Earnings Per Share (EPS)</Block>
-      <p className="mb-2">Context matters enormously. The S&P 500 historically trades at 15–25×. Software companies like ServiceNow trade at 50×+ because investors pay for future growth, not today's profits.</p>
+      <p className="mb-2">Context matters enormously. The S&P 500 historically trades at 15–25×. Software companies like ServiceNow trade at 50×+ because investors pay for future growth, not today&apos;s profits.</p>
       <p><Hl>Low P/E</Hl> — may signal value, mature business, or a company the market is ignoring. <Hl>High P/E</Hl> — high expectations baked in; any miss on earnings creates outsized drops. Unprofitable companies have no P/E at all — use P/S ratio instead.</p>
     </>),
   },
   {
-    id: 'mktcap', tag: 'SIZE', title: 'Market Cap — The Market\'s Verdict on Company Size',
+    id: 'mktcap', tag: 'SIZE', title: "Market Cap — The Market's Verdict on Company Size",
     body: (<>
       <p className="mb-3">Share price multiplied by total shares outstanding. It tells you what the market currently values the entire business at — not what it&apos;s actually worth.</p>
       <Block>Market Cap = Share Price × Shares Outstanding</Block>
@@ -64,7 +147,7 @@ const LESSONS: Lesson[] = [
     id: 'gvv', tag: 'STRATEGY', title: 'Growth vs. Value — Two Lenses, Both Valid',
     body: (<>
       <p className="mb-3"><Hl>Growth investing</Hl> pays a premium P/E for companies expanding revenue fast — even at the expense of current profits. Revenue growth rate, P/S, and TAM matter more than dividends. AMD, Micron, e.l.f., DocuSign fit this mold.</p>
-      <p className="mb-3"><Hl>Value investing</Hl> hunts for companies trading below intrinsic worth — the "margin of safety." P/E, P/B, dividend yield, and free cash flow are central. Chevron, Costco, and Cheesecake Factory lean here.</p>
+      <p className="mb-3"><Hl>Value investing</Hl> hunts for companies trading below intrinsic worth — the &ldquo;margin of safety.&rdquo; P/E, P/B, dividend yield, and free cash flow are central. Chevron, Costco, and Cheesecake Factory lean here.</p>
       <p>Neither always wins. Growth outperforms in bull markets and rate-cut cycles; value holds up better in downturns. Many investors blend both via <Accent>GARP</Accent> — Growth at a Reasonable Price — buying quality growth companies when their multiples compress.</p>
     </>),
   },
@@ -90,15 +173,15 @@ const LESSONS: Lesson[] = [
     ),
   },
   {
-    id: 'risk', tag: 'RISK', title: 'Risk — It\'s Multi-Dimensional',
+    id: 'risk', tag: 'RISK', title: "Risk — It's Multi-Dimensional",
     body: (
       <div className="space-y-3">
         {[
-          ['Market Risk',       "Broad downturns drag everything down. Diversification helps but can't eliminate it."],
-          ['Business Risk',     'Company-specific: competition, management, product failure. Research is your defense.'],
-          ['Valuation Risk',    'Overpaying is a risk even for great businesses. A stock at P/E 100× can drop to 50× with zero business deterioration.'],
-          ['Concentration Risk','Too much in one stock or sector. A 50% position in AMD is a high-volatility bet.'],
-          ['Macro Risk',        'Interest rates, inflation, recession. Growth stocks are especially rate-sensitive — higher rates reduce the present value of future earnings.'],
+          ['Market Risk',        "Broad downturns drag everything down. Diversification helps but can't eliminate it."],
+          ['Business Risk',      'Company-specific: competition, management, product failure. Research is your defense.'],
+          ['Valuation Risk',     'Overpaying is a risk even for great businesses. A stock at P/E 100× can drop to 50× with zero business deterioration.'],
+          ['Concentration Risk', 'Too much in one stock or sector. A 50% position in AMD is a high-volatility bet.'],
+          ['Macro Risk',         'Interest rates, inflation, recession. Growth stocks are especially rate-sensitive — higher rates reduce the present value of future earnings.'],
         ].map(([label, desc]) => (
           <div key={label} className="flex gap-4">
             <span className="mono text-xs shrink-0 w-36" style={{ color: 'var(--neg)' }}>{label}</span>
@@ -112,29 +195,23 @@ const LESSONS: Lesson[] = [
     id: 'dcf', tag: 'MODELS', title: 'DCF — Discounted Cash Flow, the Gold Standard',
     body: (<>
       <p className="mb-3">Estimates intrinsic value by projecting future free cash flows and discounting them to today&apos;s dollars — because $100 in five years is worth less than $100 today.</p>
-      <Block>
-        1. Forecast FCF for next 5–10 years{'\n'}
-        2. Estimate terminal value (what the business is worth after year 10){'\n'}
-        3. Discount using WACC (your required rate of return){'\n'}
-        4. Divide by shares outstanding → intrinsic value per share{'\n'}
-        5. Compare to market price → margin of safety
-      </Block>
+      <Block>{`1. Forecast FCF for next 5–10 years\n2. Estimate terminal value (what the business is worth after year 10)\n3. Discount using WACC (your required rate of return)\n4. Divide by shares outstanding → intrinsic value per share\n5. Compare to market price → margin of safety`}</Block>
       <p><Hl>Garbage in, garbage out.</Hl> Small changes in growth rate or discount rate produce wildly different outputs. Always model a bear, base, and bull scenario. A faster shortcut: if <Accent>PEG ratio ≈ 1.0</Accent> (P/E divided by growth rate), the stock may be fairly valued. Below 1.0 suggests undervaluation relative to growth.</p>
     </>),
   },
 ];
 
 const GLOSSARY = [
-  ['EPS',         'Earnings Per Share — net income ÷ shares outstanding'],
-  ['WACC',        'Weighted Average Cost of Capital — discount rate for future cash flows'],
-  ['TTM',         'Trailing Twelve Months — most recent 12-month period'],
-  ['YoY',         'Year-over-Year — comparing to the same period last year'],
-  ['Bull Market', 'Sustained price rise of 20%+ from a recent low'],
-  ['Bear Market', 'Sustained price decline of 20%+ from a recent high'],
-  ['Volatility',  "How much a stock's price swings — higher = higher risk and reward"],
+  ['EPS',          'Earnings Per Share — net income ÷ shares outstanding'],
+  ['WACC',         'Weighted Average Cost of Capital — discount rate for future cash flows'],
+  ['TTM',          'Trailing Twelve Months — most recent 12-month period'],
+  ['YoY',          'Year-over-Year — comparing to the same period last year'],
+  ['Bull Market',  'Sustained price rise of 20%+ from a recent low'],
+  ['Bear Market',  'Sustained price decline of 20%+ from a recent high'],
+  ['Volatility',   "How much a stock's price swings — higher = higher risk and reward"],
   ['Short Squeeze','Heavily shorted stocks surge, forcing short sellers to buy at higher prices'],
-  ['TAM',         'Total Addressable Market — total revenue opportunity for a product'],
-  ['GARP',        'Growth at a Reasonable Price — blends growth and value approaches'],
+  ['TAM',          'Total Addressable Market — total revenue opportunity for a product'],
+  ['GARP',         'Growth at a Reasonable Price — blends growth and value approaches'],
 ];
 
 export default function EducationPage() {
@@ -148,6 +225,9 @@ export default function EducationPage() {
           Financial concepts explained simply — tied directly to what you see on the dashboard.
         </p>
       </div>
+
+      {/* Live portfolio pulse */}
+      <PortfolioPulse />
 
       {/* Disclaimer */}
       <p className="label mb-8" style={{ color: 'var(--text-3)' }}>

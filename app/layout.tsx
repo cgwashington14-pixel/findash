@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import TickerTape from '@/components/TickerTape';
 import ThemeProvider from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased" style={{ background: 'var(--bg-app)', color: 'var(--text-1)' }}>
         <ThemeProvider>
           <Navbar />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">{children}</main>
+          <TickerTape />
+          <main>{children}</main>
         </ThemeProvider>
       </body>
     </html>

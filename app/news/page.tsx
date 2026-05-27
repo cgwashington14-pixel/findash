@@ -12,6 +12,8 @@ export default function NewsPage() {
   const [activeTicker, setActiveTicker] = useState('ALL');
   const [slackStatus, setSlackStatus] = useState<{ configured: boolean } | null>(null);
   const [posting, setPosting] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState('');
+  const [nextRefresh, setNextRefresh] = useState(120);
 
   const fetchNews = useCallback(async (ticker?: string) => {
     setLoading(true);
@@ -19,6 +21,8 @@ export default function NewsPage() {
       const url = ticker && ticker !== 'ALL' ? `/api/news?tickers=${ticker}` : '/api/news';
       const { articles: data } = await (await fetch(url)).json();
       setArticles(data ?? []);
+      setLastUpdated(new Date().toLocaleTimeString());
+      setNextRefresh(120);
     } finally { setLoading(false); }
   }, []);
 
@@ -26,6 +30,18 @@ export default function NewsPage() {
     fetchNews();
     fetch('/api/slack').then(r => r.json()).then(setSlackStatus).catch(() => {});
   }, [fetchNews]);
+
+  /* auto-refresh every 2 minutes */
+  useEffect(() => {
+    const id = setInterval(() => fetchNews(activeTicker === 'ALL' ? undefined : activeTicker), 120_000);
+    return () => clearInterval(id);
+  }, [fetchNews, activeTicker]);
+
+  /* countdown */
+  useEffect(() => {
+    const id = setInterval(() => setNextRefresh(n => Math.max(0, n - 1)), 1_000);
+    return () => clearInterval(id);
+  }, []);
 
   const handlePost = async () => {
     setPosting(true);
@@ -41,9 +57,18 @@ export default function NewsPage() {
       {/* Header */}
       <div className="flex items-end justify-between mb-8" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
         <div>
-          <h1 className="mono font-bold text-2xl tracking-tight mb-1" style={{ color: 'var(--text-1)' }}>News</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="mono font-bold text-2xl tracking-tight" style={{ color: 'var(--text-1)' }}>News</h1>
+            {/* LIVE badge */}
+            <span className="flex items-center gap-1.5" style={{ border: '1px solid var(--border)', padding: '0.2rem 0.6rem', background: 'var(--bg-card)' }}>
+              <span className="live-dot" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--pos)', display: 'inline-block' }} />
+              <span className="label" style={{ color: 'var(--pos)' }}>LIVE</span>
+            </span>
+          </div>
           <p className="text-xs" style={{ color: 'var(--text-2)' }}>
-            Live headlines for all tracked companies · 3-sentence summaries
+            {lastUpdated
+              ? `${articles.length} articles · updated ${lastUpdated} · next refresh in ${nextRefresh}s`
+              : 'Fetching latest headlines…'}
           </p>
         </div>
         <div className="flex items-center gap-3">

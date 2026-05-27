@@ -5,15 +5,44 @@ import { RefreshCw } from 'lucide-react';
 import StockCard from '@/components/StockCard';
 import { COMPANIES } from '@/lib/constants';
 import { formatMarketCap } from '@/lib/format';
+import { getMarketStatus, STATUS_COLOR } from '@/lib/market';
 import type { StockQuote } from '@/lib/types';
 
 type Filter = 'all' | 'core' | 'growth';
+
+function MarketStatusBadge() {
+  const [status, setStatus] = useState(getMarketStatus());
+  useEffect(() => {
+    const id = setInterval(() => setStatus(getMarketStatus()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span
+      className="flex items-center gap-1.5"
+      style={{
+        border: '1px solid var(--border)',
+        padding: '0.2rem 0.6rem',
+        background: 'var(--bg-card)',
+      }}
+    >
+      <span
+        className={status === 'OPEN' ? 'live-dot' : ''}
+        style={{
+          width: '5px', height: '5px', borderRadius: '50%',
+          background: STATUS_COLOR[status], display: 'inline-block',
+        }}
+      />
+      <span className="label" style={{ color: STATUS_COLOR[status] }}>{status}</span>
+    </span>
+  );
+}
 
 export default function Dashboard() {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [nextRefresh, setNextRefresh] = useState(30);
 
   const fetchQuotes = useCallback(async () => {
     setLoading(true);
@@ -24,17 +53,32 @@ export default function Dashboard() {
       for (const q of data) if (q) map[q.ticker] = q;
       setQuotes(map);
       setLastUpdated(new Date().toLocaleTimeString());
+      setNextRefresh(30);
     } catch { /* keep stale */ } finally { setLoading(false); }
   }, []);
 
+  /* initial load */
   useEffect(() => { fetchQuotes(); }, [fetchQuotes]);
 
+  /* auto-refresh every 30s */
+  useEffect(() => {
+    const id = setInterval(fetchQuotes, 30_000);
+    return () => clearInterval(id);
+  }, [fetchQuotes]);
+
+  /* countdown timer */
+  useEffect(() => {
+    const id = setInterval(() => setNextRefresh(n => Math.max(0, n - 1)), 1_000);
+    return () => clearInterval(id);
+  }, []);
+
   const filtered = COMPANIES.filter(c => filter === 'all' || c.category === filter);
-  const gainers  = Object.values(quotes).filter(q => q.changePercent > 0).length;
-  const losers   = Object.values(quotes).filter(q => q.changePercent < 0).length;
-  const totalCap = Object.values(quotes).reduce((s, q) => s + (q.marketCap ?? 0), 0);
-  const avgChg   = Object.values(quotes).length
-    ? Object.values(quotes).reduce((s, q) => s + q.changePercent, 0) / Object.values(quotes).length : 0;
+  const allQuotes = Object.values(quotes);
+  const gainers   = allQuotes.filter(q => q.changePercent > 0).length;
+  const losers    = allQuotes.filter(q => q.changePercent < 0).length;
+  const totalCap  = allQuotes.reduce((s, q) => s + (q.marketCap ?? 0), 0);
+  const avgChg    = allQuotes.length
+    ? allQuotes.reduce((s, q) => s + q.changePercent, 0) / allQuotes.length : 0;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -42,9 +86,12 @@ export default function Dashboard() {
       {/* Page header */}
       <div className="flex items-end justify-between mb-8" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
         <div>
-          <h1 className="mono font-bold text-2xl tracking-tight mb-1" style={{ color: 'var(--text-1)' }}>Markets</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="mono font-bold text-2xl tracking-tight" style={{ color: 'var(--text-1)' }}>Markets</h1>
+            <MarketStatusBadge />
+          </div>
           <p className="text-xs" style={{ color: 'var(--text-2)' }}>
-            {lastUpdated ? `Updated ${lastUpdated}` : 'Fetching live data…'}
+            {lastUpdated ? `Updated ${lastUpdated} · auto-refreshes in ${nextRefresh}s` : 'Fetching live data…'}
           </p>
         </div>
         <button

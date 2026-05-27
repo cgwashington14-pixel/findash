@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import GrowthCard from '@/components/GrowthCard';
 import { COMPANIES, GROWTH_TICKERS } from '@/lib/constants';
+import { formatCurrency } from '@/lib/format';
 import type { StockQuote } from '@/lib/types';
 
 export default function GrowthPage() {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState('');
 
   const fetchQuotes = useCallback(async () => {
     setLoading(true);
@@ -18,12 +20,28 @@ export default function GrowthPage() {
       const map: Record<string, StockQuote> = {};
       for (const q of data) if (q) map[q.ticker] = q;
       setQuotes(map);
+      setLastUpdated(new Date().toLocaleTimeString());
     } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchQuotes(); }, [fetchQuotes]);
 
+  /* auto-refresh every 30s */
+  useEffect(() => {
+    const id = setInterval(fetchQuotes, 30_000);
+    return () => clearInterval(id);
+  }, [fetchQuotes]);
+
   const growthCompanies = COMPANIES.filter(c => GROWTH_TICKERS.includes(c.ticker));
+
+  /* today's leader / laggard */
+  const ranked = growthCompanies
+    .map(c => ({ company: c, quote: quotes[c.ticker] ?? null }))
+    .filter(x => x.quote !== null)
+    .sort((a, b) => b.quote!.changePercent - a.quote!.changePercent);
+  const leader  = ranked[0]                      ?? null;
+  const laggard = ranked[ranked.length - 1]      ?? null;
+  const showMovers = leader && laggard && leader.company.ticker !== laggard.company.ticker;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -33,7 +51,9 @@ export default function GrowthPage() {
         <div>
           <h1 className="mono font-bold text-2xl tracking-tight mb-1" style={{ color: 'var(--text-1)' }}>Growth</h1>
           <p className="text-xs" style={{ color: 'var(--text-2)' }}>
-            High-conviction positions with outsized upside tied to AI, semiconductors, and consumer disruption.
+            {lastUpdated
+              ? `Live · updated ${lastUpdated} · auto-refreshes every 30s`
+              : 'High-conviction positions tied to AI, semiconductors, and consumer disruption.'}
           </p>
         </div>
         <button
@@ -46,6 +66,49 @@ export default function GrowthPage() {
           {loading ? 'Updating' : 'Refresh'}
         </button>
       </div>
+
+      {/* Today's Movers strip */}
+      {showMovers && (
+        <div className="grid grid-cols-2 gap-px mb-8" style={{ background: 'var(--border)' }}>
+          <div className="flex items-center justify-between px-5 py-3" style={{ background: 'var(--bg-card)' }}>
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-4 h-4 shrink-0" style={{ color: 'var(--pos)' }} />
+              <div>
+                <span className="label block mb-0.5" style={{ color: 'var(--pos)' }}>Today&apos;s Leader</span>
+                <span className="mono font-bold text-sm" style={{ color: 'var(--text-1)' }}>{leader!.company.ticker}</span>
+                <span className="text-xs ml-2" style={{ color: 'var(--text-2)' }}>{leader!.company.name}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="mono font-semibold text-sm block" style={{ color: 'var(--pos)' }}>
+                +{leader!.quote!.changePercent.toFixed(2)}%
+              </span>
+              <span className="mono text-xs" style={{ color: 'var(--text-3)' }}>
+                {formatCurrency(leader!.quote!.price)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-3" style={{ background: 'var(--bg-card)' }}>
+            <div className="flex items-center gap-3">
+              <TrendingDown className="w-4 h-4 shrink-0" style={{ color: 'var(--neg)' }} />
+              <div>
+                <span className="label block mb-0.5" style={{ color: 'var(--neg)' }}>Today&apos;s Laggard</span>
+                <span className="mono font-bold text-sm" style={{ color: 'var(--text-1)' }}>{laggard!.company.ticker}</span>
+                <span className="text-xs ml-2" style={{ color: 'var(--text-2)' }}>{laggard!.company.name}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="mono font-semibold text-sm block" style={{ color: 'var(--neg)' }}>
+                {laggard!.quote!.changePercent.toFixed(2)}%
+              </span>
+              <span className="mono text-xs" style={{ color: 'var(--text-3)' }}>
+                {formatCurrency(laggard!.quote!.price)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Disclaimer */}
       <p className="text-xs mb-8" style={{ color: 'var(--text-3)' }}>
