@@ -7,10 +7,11 @@ import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
 const NAV = [
-  { href: '/', label: 'Markets' },
-  { href: '/growth', label: 'Growth' },
-  { href: '/news', label: 'News' },
-  { href: '/education', label: 'Learn' },
+  { href: '/',          label: 'Markets' },
+  { href: '/growth',    label: 'Growth'  },
+  { href: '/news',      label: 'News'    },
+  { href: '/recap',     label: 'Recap'   },
+  { href: '/education', label: 'Learn'   },
 ];
 
 export default function Navbar() {
