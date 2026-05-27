@@ -1,26 +1,59 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light mode (default) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-app:    #f1f5f9;
+  --bg-card:   #ffffff;
+  --bg-subtle: rgba(0, 0, 0, 0.04);
+  --bg-hover:  rgba(0, 0, 0, 0.06);
+  --border:    rgba(0, 0, 0, 0.09);
+  --border-md: rgba(0, 0, 0, 0.15);
+  --text-1:    #0f172a;
+  --text-2:    #475569;
+  --text-3:    #94a3b8;
+  --text-4:    #cbd5e1;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark mode */
+.dark {
+  --bg-app:    #0a0e1a;
+  --bg-card:   #0f1629;
+  --bg-subtle: rgba(255, 255, 255, 0.05);
+  --bg-hover:  rgba(255, 255, 255, 0.10);
+  --border:    rgba(255, 255, 255, 0.10);
+  --border-md: rgba(255, 255, 255, 0.20);
+  --text-1:    #e2e8f0;
+  --text-2:    #94a3b8;
+  --text-3:    #64748b;
+  --text-4:    #475569;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s ease, color 0.2s ease;
 }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-card); }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
