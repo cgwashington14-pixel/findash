@@ -1,42 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* Class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Light mode (default) */
+/* ── Light mode ───────────────────────────────────────────── */
 :root {
-  --bg-app:    #f1f5f9;
-  --bg-card:   #ffffff;
-  --bg-subtle: rgba(0, 0, 0, 0.04);
-  --bg-hover:  rgba(0, 0, 0, 0.06);
-  --border:    rgba(0, 0, 0, 0.09);
-  --border-md: rgba(0, 0, 0, 0.15);
-  --text-1:    #0f172a;
-  --text-2:    #475569;
-  --text-3:    #94a3b8;
-  --text-4:    #cbd5e1;
+  --bg-app:     #f2f2f0;
+  --bg-card:    #ffffff;
+  --bg-subtle:  #ebebea;
+  --bg-hover:   #e4e4e2;
+  --border:     #ddddd9;
+  --border-md:  #c8c8c4;
+
+  --text-1:     #0a0a0a;
+  --text-2:     #6b6b6b;
+  --text-3:     #a8a8a5;
+  --text-4:     #c8c8c5;
+
+  --accent:     #5b18d9;
+  --accent-dim: rgba(91,24,217,0.10);
+
+  --pos:  #16a34a;
+  --neg:  #dc2626;
 }
 
-/* Dark mode */
+/* ── Dark mode ────────────────────────────────────────────── */
 .dark {
-  --bg-app:    #0a0e1a;
-  --bg-card:   #0f1629;
-  --bg-subtle: rgba(255, 255, 255, 0.05);
-  --bg-hover:  rgba(255, 255, 255, 0.10);
-  --border:    rgba(255, 255, 255, 0.10);
-  --border-md: rgba(255, 255, 255, 0.20);
-  --text-1:    #e2e8f0;
-  --text-2:    #94a3b8;
-  --text-3:    #64748b;
-  --text-4:    #475569;
+  --bg-app:     #080808;
+  --bg-card:    #0e0e0e;
+  --bg-subtle:  #161616;
+  --bg-hover:   #1e1e1e;
+  --border:     #222222;
+  --border-md:  #333333;
+
+  --text-1:     #efefef;
+  --text-2:     #6a6a6a;
+  --text-3:     #383838;
+  --text-4:     #282828;
+
+  --accent:     #b4ff39;
+  --accent-dim: rgba(180,255,57,0.08);
+
+  --pos:  #4ade80;
+  --neg:  #fb7185;
 }
+
+/* ── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   background: var(--bg-app);
   color: var(--text-1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
 }
 
 .line-clamp-2 {
@@ -45,7 +77,6 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -53,7 +84,6 @@ body {
   overflow: hidden;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-card); }
-::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 0; }
