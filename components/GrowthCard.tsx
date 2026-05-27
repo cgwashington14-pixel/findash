@@ -23,9 +23,15 @@ export default function GrowthCard({ company, quote }: { company: Company; quote
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
-            <span className="mono font-bold text-3xl tracking-tight" style={{ color: 'var(--text-1)' }}>
+            <a
+              href={`https://finance.yahoo.com/quote/${company.ticker}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mono font-bold text-3xl tracking-tight transition-colors hover:text-[var(--accent)]"
+              style={{ color: 'var(--text-1)' }}
+            >
               {company.ticker}
-            </span>
+            </a>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-2)' }}>{company.name}</p>
             <p className="label mt-1" style={{ color: 'var(--text-3)' }}>{company.sector}</p>
           </div>

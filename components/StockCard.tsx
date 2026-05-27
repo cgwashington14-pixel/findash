@@ -33,12 +33,15 @@ export default function StockCard({ company, quote, loading }: StockCardProps) {
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="flex items-center gap-3 mb-0.5">
-              <span
-                className="mono font-bold text-2xl tracking-tight"
+              <a
+                href={`https://finance.yahoo.com/quote/${company.ticker}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono font-bold text-2xl tracking-tight transition-colors hover:text-[var(--accent)]"
                 style={{ color: 'var(--text-1)' }}
               >
                 {company.ticker}
-              </span>
+              </a>
               {company.category === 'growth' && (
                 <span className="label" style={{ color: 'var(--accent)' }}>GROWTH</span>
               )}

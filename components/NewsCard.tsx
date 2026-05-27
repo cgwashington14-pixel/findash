@@ -19,12 +19,15 @@ export default function NewsCard({ item }: { item: NewsItem }) {
     >
       {/* Left: ticker pill */}
       <div className="shrink-0 pt-0.5">
-        <span
-          className="mono font-bold text-xs tracking-wider"
+        <a
+          href={`https://finance.yahoo.com/quote/${item.ticker}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mono font-bold text-xs tracking-wider transition-opacity hover:opacity-70"
           style={{ color: accent }}
         >
           {item.ticker}
-        </span>
+        </a>
       </div>
 
       {/* Center: content */}

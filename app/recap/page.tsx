@@ -140,12 +140,15 @@ export default function RecapPage() {
                 {/* Top row: identity + price */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-baseline gap-4">
-                    <span
-                      className="mono font-bold"
+                    <a
+                      href={`https://finance.yahoo.com/quote/${company.ticker}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mono font-bold transition-colors hover:text-[var(--accent)]"
                       style={{ fontSize: '1.4rem', color: 'var(--text-1)', letterSpacing: '-0.02em' }}
                     >
                       {company.ticker}
-                    </span>
+                    </a>
                     <span className="text-sm" style={{ color: 'var(--text-2)' }}>{company.name}</span>
                     <span className="label" style={{ color: 'var(--accent)' }}>{company.sector}</span>
                   </div>
