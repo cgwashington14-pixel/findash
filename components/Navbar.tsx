@@ -23,10 +23,15 @@ export default function Navbar() {
     <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-app)' }} className="sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
 
-        {/* Wordmark */}
-        <Link href="/" className="mono font-bold tracking-[0.12em] text-sm" style={{ color: 'var(--accent)' }}>
-          FINDASH
-        </Link>
+        {/* Wordmark + byline */}
+        <div className="flex items-baseline gap-3">
+          <Link href="/" className="mono font-bold tracking-[0.12em] text-sm" style={{ color: 'var(--accent)' }}>
+            FINDASH
+          </Link>
+          <span className="label hidden sm:inline" style={{ color: 'var(--text-3)' }}>
+            by Corey Washington · CW Enterprise
+          </span>
+        </div>
 
         {/* Nav + toggle */}
         <div className="flex items-center gap-6">
