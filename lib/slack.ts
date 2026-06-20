@@ -48,7 +48,8 @@ export function buildDailyDigest(articles: NewsItem[]): string {
     text += '\n';
   }
 
-  text += `_Powered by FinDash • <http://localhost:3000|Open Dashboard>_`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3001';
+  text += `_Powered by FinDash • <${baseUrl}|Open Dashboard>_`;
   return text;
 }
 
